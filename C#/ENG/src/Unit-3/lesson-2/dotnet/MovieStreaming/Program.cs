@@ -15,33 +15,28 @@ namespace MovieStreaming
             var system = new ActorSystem();
             Console.WriteLine("Actor system created");
 
-            var props = Props.FromProducer(() => new PlaybackActor()).WithChildSupervisorStrategy(new OneForOneStrategy(Decider.Decide, 1, null));
+            var props = Props.FromProducer(() => new UserActor());
             var pid = system.Root.Spawn(props);
 
+            Console.ReadKey();
+            Console.WriteLine("sending PlayMovieMessage (The Movie)");
             system.Root.Send(pid, new PlayMovieMessage("The Movie", 44));
+            
+            Console.ReadKey();
+            Console.WriteLine("sending PlayMovieMessage (The Movie 2)");
             system.Root.Send(pid, new PlayMovieMessage("The Movie 2", 54));
-            system.Root.Send(pid, new PlayMovieMessage("The Movie 3", 64));
-            system.Root.Send(pid, new PlayMovieMessage("The Movie 4", 74));
+            
+            Console.ReadKey();
+            Console.WriteLine("sending StopMovieMessage");
+            system.Root.Send(pid, new StopMovieMessage());
+            
+            Console.ReadKey();
+            Console.WriteLine("sending another StopMovieMessage");
+            system.Root.Send(pid, new StopMovieMessage());
 
-            Thread.Sleep(50);
-            Console.WriteLine("press any key to restart actor");
-            Console.ReadLine();
-
-            system.Root.Send(pid, new Recoverable());
-
-            Console.WriteLine("press any key to stop actor");
-            Console.ReadLine();
-            system.Root.Stop(pid);
 
             Console.ReadLine();
         }
 
-        private class Decider
-        {
-            public static SupervisorDirective Decide(PID pid, Exception reason)
-            {
-                return SupervisorDirective.Restart;
-            }
-        }
     }
 }
