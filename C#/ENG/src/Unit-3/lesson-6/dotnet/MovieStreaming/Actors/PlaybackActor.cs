@@ -10,8 +10,10 @@ namespace MovieStreaming.Actors
 {
     public class PlaybackActor : IActor
     {
+        private Dictionary<string, PID> _links = new Dictionary<string, PID>();
 
-        private string _currentlyWatching;
+        //private string _currentlyWatching;
+        private PID _userCoordinatorActorRef;
 
         public PlaybackActor() => Console.WriteLine("Creating a PlaybackActor");
         public Task ReceiveAsync(IContext context)
@@ -19,7 +21,7 @@ namespace MovieStreaming.Actors
             switch (context.Message)
             {
                 case Started msg:
-                    ProcessStartedMessage(msg);
+                    ProcessStartedMessage(context, msg);
                     break;
 
                 case PlayMovieMessage msg:
@@ -33,13 +35,22 @@ namespace MovieStreaming.Actors
                 case Stopping msg:
                     ProcessStoppingMessage(msg);
                     break;
+
+                case RequestActorPidMessage msg:
+                    ProcessRequestActorPidMessage(context, msg);
+                    break;
             }
             return Actor.Done;
         }
 
-        private void ProcessStartedMessage(Started msg)
+      
+
+        private void ProcessStartedMessage(IContext context, Started msg)
         {
             ColorConsole.WriteLineGreen("PlaybackActor Started");
+
+            var props = Props.FromProducer(() => new UserCoordinatorActor());
+            _userCoordinatorActorRef = context.Spawn(props);
         }
 
         private void ProcessPlayMovieMessage(PlayMovieMessage msg)
@@ -69,17 +80,11 @@ namespace MovieStreaming.Actors
             ColorConsole.WriteLineGreen("PlaybackActor Stopping");
         }
 
-        private void StartPlayingMovie(string movieTitle)
+        private void ProcessRequestActorPidMessage(IContext context, RequestActorPidMessage msg)
         {
-            _currentlyWatching = movieTitle;
-
-            ColorConsole.WriteLineYellow($"User is currently watching '{_currentlyWatching}'");
+            context.Respond(new ResponseActorPidMessage(msg.ActorName, _links[msg.ActorName]));
         }
 
-        private void SoptPlayingCurrentMovie()
-        {
-            ColorConsole.WriteLineYellow($"User has stopped watching '{_currentlyWatching}'");
-            _currentlyWatching = null;
-        }
+
     }
 }

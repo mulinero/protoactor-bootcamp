@@ -9,14 +9,16 @@ namespace MovieStreaming.Actors
 {
     public class UserActor : IActor
     {
+        private int _id;
+       
         private string _currentlyWatching;
 
         private readonly Behavior _behavior;
 
-        public UserActor()
+        public UserActor(int id)
         {
+            _id = id;
             Console.WriteLine("Creating a UserActor");
-            ColorConsole.WriteLineCyan("Setting initial behavior to stopped");
             _behavior = new Behavior(Stopped);
         }
 
@@ -34,8 +36,11 @@ namespace MovieStreaming.Actors
                 case StopMovieMessage msg:
                     ColorConsole.WriteLineRed("Error: cannot stop if nothing is playing");
                     break;
+                default:
+                    ColorConsole.WriteLineCyan("UserActor has now become Stopped");
+                    break;
+
             }
-            ColorConsole.WriteLineCyan("UserActor has now become Stopped");
 
             return Actor.Done;
         }
@@ -52,8 +57,11 @@ namespace MovieStreaming.Actors
                     _currentlyWatching = null;
                     _behavior.Become(Stopped);
                     break;
+                default:
+                    ColorConsole.WriteLineCyan("UserActor has now become Playing");
+                    break;
             }
-            ColorConsole.WriteLineCyan("UserActor has now become Playing");
+            
 
             return Actor.Done;
         }
